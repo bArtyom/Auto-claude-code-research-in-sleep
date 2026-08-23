@@ -1,56 +1,62 @@
 # Experiment Plan — SemLibSQL-Γ
 
 **Date:** 2026-08-23  
-**Status:** PRE-REGISTERED DESIGN; NO EXPERIMENTS RUN  
-**Purpose:** make the next step executable while preserving the user's stop condition at the boundary where empirical work begins.
+**Status:** **PRE-REGISTERED DESIGN; NO EXPERIMENTS RUN**  
+**Purpose:** falsify the Guarded Abstraction Gap before building a Text2SQL agent.
 
 ---
 
 ## 0. Thesis under test
 
-> A warehouse-conditioned library learner can discover reusable, scoped semantic SQL operators that strong generic library/refactoring methods miss, and those operators improve held-out Text2SQL composition beyond structured memory.
+> Realistic verified SQL workloads contain reusable operations whose equivalence is **warehouse-conditional**. Jointly learning guarded abstractions can recover/use that structure more safely or effectively than strong global-theory library learning, separate precondition inference, and episodic Text2SQL memory.
 
-The plan is intentionally staged. **Do not build a full agent before Gate A passes.**
+This plan is ordered so the cheapest evidence can terminate the idea early.
 
 ---
 
 # 1. Hypotheses
 
-## H1 — Contextual equivalence changes abstraction discovery
+## H1 — Guarded Abstraction Gap exists
 
-Programs that are equivalent only under warehouse-specific constraints can be safely grouped into reusable motif families more effectively by SemLibSQL-Γ than by syntax/global-theory baselines.
+At matched high precision, conditioning on local warehouse contracts recovers hard-positive semantic motif families missed by syntax/global fixed-theory library learning.
 
-### Falsification
+**Falsify if:** strong E-Stitch/babble/ReGAL baselines with generous SQL rewrite theory recover essentially the same families.
 
-If Stitch/babble/ReGAL-style baselines with generous SQL rewrite rules recover the same hard-positive families at similar false-merge rate, the SQL-specific mechanism is unnecessary.
+## H2 — Guards matter for safety
 
-## H2 — Scope contracts prevent negative transfer
+Explicit applicability guards substantially reduce false reuse on near-miss contexts where one semantic condition is violated.
 
-Attaching applicability conditions to abstractions reduces unsafe reuse on near-miss contexts where one relevant warehouse law is violated.
+**Falsify if:** scoped vs unscoped reuse has negligible difference, or guards are effectively hand labels.
 
-### Falsification
+## H3 — Joint induction adds value beyond a composed PL pipeline
 
-If scoped and unscoped libraries have similar false-reuse behavior, scope contracts are not a meaningful mechanism.
+Joint abstraction+guard selection improves over:
 
-## H3 — Learned operators enable composition beyond memory
+```text
+E-Stitch/babble-style abstraction
+→ predicate/conditional reasoning
+→ Alive-Infer-style precondition inference
+```
 
-On target queries whose motifs were individually observed but whose complete combination was withheld, SemLibSQL-Γ outperforms the strongest verified-query/structured-memory baseline under matched context budget.
+**Falsify if:** the composed baseline matches the joint method. If H1 still holds, only a benchmark/analysis paper remains plausible.
 
-### Falsification
+## H4 — Guarded library beats memory on unseen composition
 
-If memory/retrieval matches SemLibSQL-Γ, the library is just compressed episodic memory.
+On withheld combinations of known motifs, SemLibSQL-Γ outperforms strongest verified-query/structured-memory baselines under matched context.
+
+**Falsify if:** memory closes the gap.
 
 ---
 
-# 2. Gate A — Contract-Conditioned Abstraction Feasibility
+# 2. Gate A — Guarded Abstraction Gap
 
-**This is the first real experiment and the exact point where this idea-discovery run stops.**
+**This is the first real experiment. The current idea-discovery session stops before executing it.**
 
-## 2.1 Corpus target
+## 2.1 Corpus
 
-Create **200–500 verified SQL programs** covering 8–12 motifs across at least 3 schemas/projects.
+Target **200–500 verified SQL programs**, 8–12 motifs, at least 3 schemas/projects.
 
-Recommended motif pool:
+Suggested motifs:
 
 1. `latest_snapshot(entity, as_of)`
 2. `scd2_state(entity, as_of)`
@@ -65,138 +71,181 @@ Recommended motif pool:
 11. `topk_with_ties(entity, metric, k)`
 12. `conversion_funnel(stage_order)`
 
-The earlier seed specifications in `round4-semlibsql-pilot/SEED_CORPUS_MANIFEST.md` can initialize this corpus, but they must be instantiated into executable SQL/database states before they count as evidence.
+The existing `round4-semlibsql-pilot/SEED_CORPUS_MANIFEST.md` is specification-only. Cases count only after they become executable and independently checked.
 
-## 2.2 Hard-positive design
+## 2.2 Hard positives
 
-For each motif, include genuinely distinct implementation families, e.g.:
+Require genuinely different implementations, for example:
 
-- window + row-number vs aggregate-and-join;
+- window/row-number vs aggregate-and-join;
 - `QUALIFY` vs nested subquery;
 - `DISTINCT ON` vs row-number;
-- direct base-table formulation vs equivalent dbt/logical view;
-- join path collapsed by a validated relationship;
-- semantically equivalent filter/order rewrites;
-- different dialect realizations for a subset.
+- base-table logic vs validated logical/dbt view;
+- alternate join paths equivalent only under declared relationships;
+- equivalent aggregation forms under a key/grain contract;
+- multiple dialect realizations.
 
-A hard positive is useful only when generic AST similarity is low enough that trivial normalization does not solve it.
+Hard positives must be difficult for normalized AST similarity.
 
-## 2.3 Hard-negative design
+## 2.3 Hard negatives
 
-Construct near-miss pairs that look similar but differ under one critical semantic condition:
+Near-identical programs must become non-equivalent after one contract fact is changed:
 
-- `latest before as_of` vs absolute latest;
-- uniqueness holds vs duplicate-key case;
-- `COUNT(*)` vs `COUNT(DISTINCT entity_id)` under violated uniqueness;
-- inner vs left join when existence/totality fails;
-- one row per order vs one row per customer;
-- inclusive vs exclusive temporal boundary;
-- different tie-handling policy;
-- nullable vs non-nullable join/filter semantics;
+- unique key vs duplicate key;
+- total relationship vs missing dimension row;
+- non-null vs nullable key;
+- latest-before-`as_of` vs absolute latest;
+- unique timestamp vs tied timestamp;
+- customer grain vs order grain;
+- inner vs left join under violated coverage;
+- inclusive vs exclusive date boundary;
 - gross vs recognized/net metric;
-- current snapshot vs valid-time snapshot.
+- current-state vs valid-time state.
 
-These examples are mandatory because pure recall can reward unsafe over-merging.
+These cases measure safety, not just compression.
 
-## 2.4 Warehouse contracts
+## 2.4 Contract fact classes
 
-For every test family, record facts as:
+For every candidate fact record:
 
 ```text
-DECLARED
-VERIFIED
-EMPIRICAL
-HYPOTHESIS
+DECLARED   # schema/dbt/governed contract
+VERIFIED   # deterministic/formal/test evidence
+EMPIRICAL  # observed in current data only
+HYPOTHESIS # unsupported candidate
 ```
 
-Gate A should initially allow only `DECLARED` and `VERIFIED` facts to certify automatic reuse. Run an ablation later with empirical constraints.
-
-## 2.5 Methods
-
-### A0 — Token / lexical similarity
-
-Normalized SQL text/embedding clustering.
-
-### A1 — Normalized AST
-
-Alias/format/literal normalization plus tree similarity.
-
-### A2 — Stitch-style syntactic library learning
-
-Library induction over normalized SQL/relational syntax.
-
-### A3 — babble/LLMT-style fixed-theory library learning
-
-Give the baseline a generous, manually curated set of universally safe SQL/relational equalities. This is the **critical baseline**.
-
-### A4 — ReGAL-style execution-validated refactoring
-
-Use execution to validate reusable refactorings without warehouse-specific scope contracts.
-
-### A5 — SemLibSQL with global semantics only
-
-Same architecture as the proposed method, but no warehouse-specific conditional laws.
-
-### A6 — **SemLibSQL-Γ**
-
-Use contract-conditioned equivalence plus scoped operators.
-
-## 2.6 Metrics
-
-Primary abstraction metrics:
-
-- hard-positive motif recall;
-- hard-positive precision / cluster purity;
-- **false semantic merge rate** on hard negatives;
-- precision–recall curve or recall at fixed high precision;
-- number of cross-realization motif families recovered;
-- support size and parameter consistency per abstraction.
-
-Scope metrics:
-
-- precondition violation detection rate;
-- false reuse with scope vs without scope;
-- fraction of operators with compact/nontrivial scope contracts;
-- manual effort required to define/validate scope.
-
-Secondary:
-
-- compression ratio;
-- induction time;
-- equivalence-oracle UNKNOWN rate;
-- fraction of decisions certified formally vs by differential tests.
-
-## 2.7 Gate-A decision rule
-
-### PASS
-
-Continue only if at least one of the following is clear and reproducible:
-
-- SemLibSQL-Γ improves hard-positive recall by roughly **≥10 absolute points** at comparable high precision / false-merge rate versus the strongest generic baseline; or
-- it discovers several high-support, semantically coherent cross-realization abstractions that fixed-theory LLMT/ReGAL cannot recover and these are later usable for composition; or
-- scope contracts produce a material safety frontier improvement that generic/unscoped libraries cannot match.
-
-### FAIL
-
-Kill the core mechanism if:
-
-- A3/A4 ≈ A6;
-- gains reduce to formatting/CTE/alias normalization;
-- false merges rise materially;
-- most useful contracts are manually supplied at motif level;
-- equivalence remains UNKNOWN for too much of the realistic workload to support useful induction.
-
-**Do not add agent complexity after a Gate-A failure.**
+Primary Gate A allows `DECLARED` + `VERIFIED` facts to certify reuse. Later ablate empirical facts.
 
 ---
 
-# 3. Gate B — Held-Out Motif Composition
+# 3. Gate-A systems
 
-Run only after Gate A passes.
+## A0 — lexical/token baseline
 
-## 3.1 Split design
+Normalized SQL tokens / embeddings.
 
-Construct a history where motifs are individually present and some combinations are observed, while target combinations are absent.
+## A1 — normalized AST/relational plan
+
+Aliases/formatting/literals plus conservative structural normalization.
+
+## A2 — Stitch
+
+Strong syntax/corpus library learning.
+
+## A3 — babble / LLMT
+
+Library learning modulo a generous manually supplied globally valid SQL/relational equational theory.
+
+## A4 — **E-Stitch (2026)**
+
+Top-down library learning directly over e-graphs. This is now a mandatory baseline, not optional related work.
+
+## A5 — ReGAL-style execution refactoring
+
+Execution-validated reusable function learning without warehouse-specific guarded-library objective.
+
+## A6 — Conditional equality baseline
+
+Use colored/predicate-egraph-style assumptions or equivalent conditional rewriting with a fixed set of guards.
+
+## A7 — Separate guard inference baseline
+
+First learn candidate abstractions with A3/A4/A5, then infer applicability conditions using an **Alive-Infer-style** positive/negative precondition learner.
+
+This is the critical “obvious composition of prior art” baseline.
+
+## A8 — SemLibSQL-global
+
+Same implementation/search machinery as proposed method but only globally valid theory; no local warehouse-conditioned guards.
+
+## A9 — **SemLibSQL-Γ joint**
+
+Jointly score/select abstraction and compact applicability guard for workload reuse and downstream utility.
+
+---
+
+# 4. Gate-A metrics
+
+## 4.1 Guarded Abstraction Gap metrics
+
+- hard-positive motif recall;
+- precision / semantic cluster purity;
+- **false semantic merge rate** on hard negatives;
+- recall at fixed high precision (primary view);
+- number of cross-realization families recovered;
+- abstraction support size;
+- parameter consistency.
+
+Define a reported **GAG delta** such as:
+
+```text
+best recall at precision ≥ P under warehouse-conditioned guards
+-
+best recall at precision ≥ P under strongest global/fixed-theory baseline
+```
+
+Report across multiple `P` values rather than one arbitrary threshold.
+
+## 4.2 Guard quality
+
+- guard precision/recall against known validity contexts;
+- near-miss rejection rate;
+- false rejection of valid contexts;
+- guard complexity (predicates/atoms);
+- proportion derived automatically;
+- provenance composition (`DECLARED` vs `VERIFIED` etc.);
+- generalization to a held-out schema/context for the same motif.
+
+## 4.3 Oracle/equivalence diagnostics
+
+- `EQUIVALENT / NOT_EQUIVALENT / UNKNOWN` rate;
+- fraction resolved by safe rewrite vs formal/bounded solver vs differential execution;
+- time/cost per judgment;
+- counterexample yield.
+
+Compression ratio is secondary only.
+
+---
+
+# 5. Gate-A decision tree
+
+## FAIL-0 — no phenomenon
+
+If the Guarded Abstraction Gap is negligible versus A3/A4/A5:
+
+> **Kill SemLibSQL entirely.**
+
+No agent architecture should be added.
+
+## FAIL-1 — phenomenon exists, but prior-art composition solves it
+
+If local guards reveal a real gap but A7 (separate E-Stitch/LLMT + precondition inference) matches A9:
+
+> **Drop the joint-method novelty claim.**
+
+Possible remaining output: Guarded Abstraction Gap benchmark/analysis paper, only if the phenomenon is large, realistic, and informative.
+
+## PASS-A — joint method matters
+
+Proceed to Gate B only if A9 materially improves the precision–recall/safety frontier over **both** strong global theory (A3/A4) and prior-art composition (A7).
+
+Practical investment threshold: look for at least one of:
+
+- roughly **≥10 absolute points** hard-positive recall at similar high precision;
+- clearly superior GAG frontier across several motifs/databases;
+- materially safer guard generalization at comparable coverage;
+- several high-support abstractions inaccessible to baselines and demonstrably useful downstream.
+
+A tiny mean gain is not enough.
+
+---
+
+# 6. Gate B — held-out composition beyond memory
+
+Run only after PASS-A or a deliberate analysis-paper pivot.
+
+## 6.1 Split
 
 Example:
 
@@ -216,163 +265,127 @@ A+D
 B+D+E
 ```
 
-with motifs such as:
+Motifs can be:
 
 ```text
-A = latest_snapshot
-B = active_entity
-C = recognized_revenue
-D = fiscal_period
-E = eligible_population
+A latest_snapshot
+B active_entity
+C recognized_revenue
+D fiscal_period
+E eligible_population
 ```
 
-## 3.2 Leakage controls
-
-For each target:
+## 6.2 Leakage controls
 
 - no exact SQL duplicate;
 - no near-duplicate complete normalized plan;
-- no NL template with literal-only substitutions;
-- report nearest historical SQL/plan similarity;
-- where possible, no single historical query contains the full target schema subgraph + operator combination;
-- include cross-dialect/cross-schema variants for a subset.
+- no NL template with literal-only substitution;
+- report nearest history similarity;
+- where possible, no historical query contains the full target schema-subgraph/operator composition;
+- cross-schema/dialect variants for a subset.
 
-## 3.3 Systems
+## 6.3 Systems
 
-### B0 — Strong stateless Text2SQL
+- **B0:** strong stateless Text2SQL;
+- **B1:** top-k verified-query retrieval;
+- **B2:** matched-context maximal retrieval;
+- **B3:** AgentSM-like structured program memory;
+- **B4:** GATE-like execution-grounded semantic memory;
+- **B5:** strongest generic library baseline from Gate A;
+- **B6:** separate abstraction+guard pipeline (A7) if viable;
+- **B7:** manual/oracle guarded semantic library;
+- **B8:** SemLibSQL-Γ joint.
 
-Same base model, schema/context, no history.
-
-### B1 — Verified-query retrieval
-
-Top-k question/SQL examples.
-
-### B2 — Matched-context retrieval
-
-Allow as much historical text as the proposed operator definitions consume.
-
-### B3 — AgentSM-style structured memory
-
-Retrieve structured solution programs/traces.
-
-### B4 — Execution-grounded semantic memory
-
-GATE-like reusable grounding facts where applicable.
-
-### B5 — ReGAL/babble learned generic library
-
-Strongest Gate-A generic abstraction baseline.
-
-### B6 — Manual/oracle semantic library
-
-Human-authored correct motif operators; diagnostic upper bound.
-
-### B7 — **SemLibSQL-Γ**
-
-Automatically induced scoped library.
-
-## 3.4 Primary metrics
+## 6.4 Metrics
 
 - semantic execution correctness;
-- first-attempt success before repair loops;
+- first-attempt success;
 - compositional generalization gap;
-- token use;
+- tokens;
 - DB/tool calls;
-- end-to-end latency if stable;
-- negative-transfer rate on out-of-scope tasks.
+- latency;
+- out-of-scope/negative-transfer rate.
 
-## 3.5 Statistical plan
+## 6.5 Statistics
 
-- predeclare B7 vs strongest of B2/B3/B4/B5 as main comparison;
-- paired per-task outcomes;
-- bootstrap CIs for accuracy deltas;
-- McNemar test for paired binary correctness;
-- report per-database and per-composition family;
-- include nearest-history similarity as a covariate/diagnostic.
+- predeclare B8 vs strongest of B2/B3/B4/B5/B6;
+- paired task outcomes;
+- bootstrap CIs;
+- McNemar for binary correctness;
+- per-database/per-composition breakdown;
+- nearest-history similarity diagnostic.
 
-## 3.6 Gate-B investment threshold
+## 6.6 Continue threshold
 
-Continue toward a full paper only if:
+Full method-paper investment requires either:
 
-- **≥2–3 absolute points** over the strongest memory/generic-library baseline with consistent direction across databases, or
-- similar accuracy with **≥20%** meaningful inference-cost reduction and no safety regression, or
-- a substantially larger, predeclared gain on the hard compositional subset.
-
-Tiny aggregate gains are insufficient.
+- **≥2–3 absolute execution-accuracy points** over strongest relevant baseline with consistent cross-database direction, or
+- similar accuracy with **≥20%** meaningful inference-cost reduction and no safety loss, or
+- a substantially larger predeclared gain on the hard composition subset.
 
 ---
 
-# 4. Gate C — Scope and Safety Audit
+# 7. Gate C — guard violation / negative transfer
 
-Run if Gate B is promising.
-
-For each learned operator, deliberately violate one contract at a time:
+Deliberately violate one guard atom at a time:
 
 - uniqueness;
-- key coverage;
 - nullability;
+- key coverage;
+- join cardinality;
 - time/tie policy;
-- relationship totality;
 - grain;
 - metric definition;
 - data-version assumptions.
 
-Measure whether the system:
+Measure whether the system refuses/falls back versus silently reusing the abstraction.
 
-1. refuses the operator;
-2. falls back safely;
-3. incorrectly reuses it;
-4. propagates the mistake to a final SQL answer.
-
-This is necessary to distinguish useful contextual abstraction from unsafe pattern reuse.
+This is mandatory for any reliability claim.
 
 ---
 
-# 5. Required Ablations
+# 8. Required ablations
 
-1. **No warehouse contract** — global safe rewrites only.
-2. **No scope contract** — learn abstraction but reuse everywhere.
-3. **Declared constraints only** vs declared + verified inferred constraints.
-4. **No formal equivalence component** — differential execution only.
-5. **No differential counterexamples** — static/formal evidence only.
-6. **No semantic types/grain** — relational plan only.
-7. **No operator names/docstrings** — test whether gains come merely from helpful language descriptions.
-8. **Syntactic library with same size/token budget** — fairness control.
-
----
-
-# 6. Reporting Discipline
-
-If Gate A fails, the correct conclusion is:
-
-> generic library learning is sufficient for the tested SQL reuse regime, or the proposed contextual-equivalence machinery does not justify its complexity.
-
-If oracle library succeeds but automatic induction fails:
-
-> semantic abstraction is useful, but automatic abstraction/scope induction remains unsolved.
-
-If Gate A passes but Gate B fails:
-
-> contextual abstraction exists but does not improve Text2SQL generation beyond memory; consider an analysis/benchmark paper, not the current method claim.
-
-If scope safety fails:
-
-> do not deploy or claim reliable long-lived reuse; redesign scoping/versioning first.
+1. no warehouse-local guard;
+2. fixed/global equational theory only;
+3. E-Stitch vs babble vs ReGAL candidate generation;
+4. separate precondition inference vs joint abstraction+guard objective;
+5. declared constraints only vs declared+verified inferred constraints;
+6. formal/bounded equivalence removed;
+7. differential counterexamples removed;
+8. grain/type signals removed;
+9. operator natural-language names/docstrings removed;
+10. equal library size/context budget.
 
 ---
 
-# 7. Experiment Start Checklist
+# 9. Backup trigger
 
-Before running Gate A:
+If Gate A kills the SemLibSQL line, the preselected backup is **TemporalSQL-Drift** rather than adding complexity to SemLibSQL.
 
-- [ ] instantiate executable database schemas/states;
-- [ ] instantiate 200–500 SQL cases with motif labels;
-- [ ] independently verify gold motif and hard-negative labels;
-- [ ] record contract facts and provenance classes;
-- [ ] implement/obtain A0–A4 baselines;
-- [ ] freeze scoring code and primary metrics;
-- [ ] freeze Gate-A thresholds;
-- [ ] log random seeds / DB engine versions;
-- [ ] ensure no LLM judge is the sole correctness oracle.
+TemporalSQL-Drift should test questions whose correct semantics differ by:
 
-**Current status:** none of these empirical steps has been executed in this idea-stage session.
+- historical valid-time definition;
+- what the organization/agent knew at knowledge time;
+- current-definition recomputation.
+
+A fresh literature search is required before executing that backup, but current search did not surface a directly matching Text2SQL benchmark.
+
+---
+
+# 10. Experiment-start checklist
+
+Before any empirical claim:
+
+- [ ] instantiate executable DB schemas/states;
+- [ ] instantiate 200–500 SQL programs;
+- [ ] independently verify motif/hard-negative labels;
+- [ ] record guard facts + provenance;
+- [ ] implement/obtain A0–A7 baselines;
+- [ ] freeze scoring code and thresholds;
+- [ ] record engine versions/random seeds;
+- [ ] avoid LLM judge as sole correctness oracle.
+
+**Current state:** every item above is NOT STARTED.
+
+This is intentionally the stopping point of the idea phase.
