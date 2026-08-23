@@ -1,318 +1,310 @@
 # Idea Discovery Report — Text2SQL × Long-Horizon Database Agents
 
-**Direction:** Text2SQL, SQL agents, and long-lived database agents  
 **Date:** 2026-08-23  
-**Pipeline:** research-lit → idea generation → novelty check → adversarial research review → method refinement → experiment planning  
-**Status:** **IDEA DESIGN COMPLETE; EMPIRICAL VALIDATION NOT STARTED**  
-**Formal cross-model review receipt:** unavailable in this connector session; all novelty/review verdicts below are provisional until a configured independent reviewer returns an identity-bearing verdict.
+**Pipeline:** research-lit → idea generation → novelty filtering → adversarial review → refinement → experiment design  
+**Status:** **IDEA STAGE COMPLETE; EMPIRICAL WORK NOT STARTED**  
+**Formal external-review receipt:** unavailable in this connector session; novelty/review verdicts remain provisional.
 
 ---
 
-## 1. Executive summary
+## Executive summary
 
-After several breadth-first rounds and repeated literature-driven elimination, the recommended research direction is:
+After breadth-first ideation, several rounds of recent-literature search, and repeated elimination, the remaining research bet is a deliberately narrow one:
 
-> **SemLibSQL-Γ: Contract-Conditioned Semantic Library Learning from Verified Text-to-SQL Experience.**
+> **SemLibSQL-Γ: learn reusable SQL abstractions together with the warehouse-specific guards under which those abstractions are semantically valid, then test whether this guarded language supports unseen Text2SQL compositions beyond strong memory and generic program-library learning.**
 
-The research question is no longer whether a Text2SQL agent can store previous queries, retrieve previous reasoning traces, construct a semantic layer, or learn a generic library of repeated code. All of those neighborhoods now have strong prior art.
+The most important final change is that **library learning, e-graph library learning, conditional rewriting, precondition inference, and SQL equivalence are all prior art**. Therefore none can be claimed separately. The only defensible hypothesis left is an empirical/method intersection:
 
-The remaining hypothesis is narrower:
+> Real warehouse SQL may contain a **Guarded Abstraction Gap**: useful recurring semantic operations that become reusable only after conditioning equivalence on local data/business contracts, and whose safe reuse requires carrying those conditions forward.
 
-> **Can a long-lived Text2SQL agent discover reusable warehouse-specific semantic operators by grouping SQL programs that are equivalent only under a warehouse's integrity/business contract, attach the required scope conditions to each operator, and then use those scoped operators to solve unseen compositions better than strong memory and generic program-refactoring baselines?**
-
-This is intentionally a sharp, falsifiable claim. The next required action is a controlled Gate-A experiment. Per the user's instruction, this research run stops before executing that experiment.
+The next question is empirical. No SQL corpus has been executed and no pilot result is claimed here. Per the user instruction, this workflow stops at that boundary.
 
 ---
 
-# 2. Literature landscape after final re-check
+# 1. Final literature landscape
 
-## 2.1 Text2SQL memory is crowded
+## 1.1 Text2SQL memory and execution-grounded reuse are crowded
 
-Recent work makes ordinary persistent-query memory an insufficient novelty claim:
+Recent systems already establish persistent reuse:
 
-- **AgentSM: Semantic Memory for Agentic Text-to-SQL** (2026, arXiv:2601.15709) stores prior execution traces as structured programs and reuses them to shorten later reasoning trajectories.
-- **GATE: Bootstrapping Semantic Layer from Execution for Text-to-SQL** (2026, arXiv:2606.05634) keeps grounding hypotheses open, uses execution feedback to validate them, and stores validated groundings as reusable memory.
-- **Continual Learning of Domain Knowledge from Human Feedback in Text-to-SQL** (2025, arXiv:2511.10674) distills human feedback into structured reusable domain knowledge.
-- **EvoSQL** (2026, arXiv:2607.20489) adds contextualized candidate memory to a critic-generator co-evolution framework.
+- **AgentSM: Semantic Memory for Agentic Text-to-SQL** (2026, arXiv:2601.15709) stores prior execution traces as interpretable structured programs and reuses them to shorten later reasoning.
+- **GATE: Bootstrapping Semantic Layer from Execution for Text-to-SQL** (2026, arXiv:2606.05634) validates grounding hypotheses through execution and accumulates supported groundings as reusable memory.
+- Continual human-feedback Text2SQL work distills corrections into reusable domain knowledge.
+- Multi-turn memory benchmarks in 2026 explicitly evaluate working, episodic, and semantic memory.
 
-**Implication:** `store/retrieve prior SQL`, `store successful traces`, `store failure tips`, and `execution-grounded semantic memory` are baselines, not the paper contribution.
+**Conclusion:** storing/retrieving previous SQL, traces, corrections, or semantic groundings is a baseline, not a contribution.
 
-## 2.2 Generic program-library learning is also strong prior art
+## 1.2 Semantic-layer and schema-side adaptation are also crowded
 
-The closest program-synthesis literature is more dangerous than initially assumed:
+- A 2026 semantic-layer-mediated Text2SQL agent decouples intent from physical SQL through an explicit semantic model/IR.
+- Snowflake Semantic View Autopilot mines query history and BI assets to generate governed semantic views.
+- **The Case for Text-to-SQL Friendly Logical Database Design** (2026, arXiv:2606.03145) uses historical question-SQL pairs to guide semantics-preserving logical views/partitions/renamings.
 
-- **DreamCoder** learns reusable program libraries in a wake/sleep synthesis loop.
-- **Stitch / Top-Down Synthesis for Library Learning** (arXiv:2211.16605) performs corpus-guided abstraction learning at much larger scale than earlier deductive approaches.
-- **babble: Learning Better Abstractions with E-Graphs and Anti-Unification** (arXiv:2212.04596) introduces **library learning modulo theory (LLMT)**: abstractions are learned while an equational theory and e-graphs collapse syntactic variation.
-- **ReGAL: Refactoring Programs to Discover Generalizable Abstractions** (ICML 2024) learns reusable functions from existing programs and validates/refines abstractions through execution.
+**Conclusion:** automatic semantic-layer generation or workload-guided logical views cannot be Paper-1 novelty.
 
-**Critical consequence:** a paper whose contribution is simply `SQL history → canonicalize → mine reusable functions` is not sufficiently novel. In particular, babble already establishes the general idea of library learning modulo an equivalence theory.
+## 1.3 Generic library learning is a major collision
 
-## 2.3 SQL equivalence under constraints is a mature database topic
+- **DreamCoder** learns reusable program libraries from solved programs.
+- **Stitch** performs scalable corpus-guided library induction.
+- **babble / LLMT** (POPL 2023, arXiv:2212.04596) explicitly performs **library learning modulo an equational theory** using e-graphs and anti-unification, so it already attacks syntactic variation via semantic equalities.
+- **ReGAL** (ICML 2024) refactors programs into reusable abstractions and uses execution for validation/refinement.
+- **E-Stitch** (EGRAPHS 2026) extends Stitch's top-down library search directly to e-graphs, combining efficient corpus-guided search with equivalence classes.
 
-The database literature also removes several possible novelty claims:
+**Conclusion:** `SQL history → e-graph/canonicalization → reusable functions` is not novel.
 
-- U-semiring work formalizes semantic equivalence for sophisticated SQL and integrity constraints.
-- **VeriEQL** (2024, arXiv:2403.03193) performs bounded equivalence checking for complex SQL under integrity constraints and can produce counterexamples.
-- Query reformulation under integrity constraints is decades old; equivalence under constraints is explicitly weaker than global equivalence.
-- Recent work such as **SLER** (2026, arXiv:2603.04169) automatically builds very large SQL rewrite-rule repositories.
+## 1.4 Conditional equivalence and guard reasoning are also prior art
 
-**Implication:** SemLibSQL must not claim new SQL equivalence checking, new constraint-aware query rewriting, or new rewrite-rule discovery.
+The final novelty audit found additional close mechanisms:
 
-## 2.4 Automatic semantic-layer generation is rapidly becoming productized
+- Conditional term rewriting is classical.
+- **Combining E-Graphs with Abstract Interpretation** (2022) uses program-property analysis to discharge conditions for conditional rewrites.
+- **Colored E-Graphs** and the 2026 **Predicate E-Graphs with Symbolic Conditional Rewriting** explicitly represent equality under assumptions/Boolean predicates.
+- **Alive-Infer** (PLDI 2017) automatically infers valid preconditions for program optimizations from positive/negative examples and can generalize optimization patterns.
+- Other program-analysis work studies automatic precondition inference more broadly.
 
-This area is especially crowded in 2026:
+**Conclusion:** even `learn/reason about a rewrite precondition` is not enough as a novelty claim.
 
-- A semantic-layer-mediated NL2SQL agent (arXiv:2606.31041) reasons over a curated Semantic Model Query IR and compiles it to multiple dialects.
-- Snowflake **Semantic View Autopilot** mines query history and BI assets to generate governed semantic views; Snowflake engineering has publicly described query-history mining for semantic-model construction.
-- **The Case for Text-to-SQL Friendly Logical Database Design** (arXiv:2606.03145) explicitly studies semantics-preserving schema abstraction, including logical views that materialize recurring join paths, guided by historical question-SQL pairs.
+## 1.5 SQL equivalence under constraints is mature database theory
 
-**Implication:** the earlier AutoSemanticView idea is not suitable as the first paper. Environment modification may remain a downstream extension, but not the current novelty anchor.
+Database research has long studied equivalence/reformulation under integrity constraints. More recent tools such as U-semiring-based reasoning and **VeriEQL** handle increasingly rich SQL fragments and constraints; modern rewrite systems continue to expand the space of validated SQL transformations.
 
-## 2.5 Clarification/ambiguity is also crowded
+**Conclusion:** SemLibSQL must use equivalence/constraint tooling as a component or oracle. It cannot claim new SQL equivalence checking.
 
-- **PRACTIQ** (NAACL 2025) benchmarks ambiguous and unanswerable conversational Text2SQL.
-- **AmbiSQL** (2025) performs interactive ambiguity detection and resolution.
-- **CLUES** (2026, arXiv:2602.12015) explicitly separates input ambiguity from model instability in a clinical Text2SQL case study.
+## 1.6 Clarification, active exploration, and generic agent loops are crowded
 
-**Implication:** generic `candidate disagreement → ask user` or `measure persistent ambiguity` is no longer a strong standalone contribution.
+- TRUST-SQL/SDE-SQL occupy active schema exploration and sequential decision-making territory.
+- PRACTIQ, AmbiSQL, and related work occupy ambiguity/clarification.
+- MCTS/test-time scaling and multi-agent SQL repair are already substantial literatures.
 
----
-
-# 3. Ranked ideas after novelty filtering
-
-| Rank | Idea | Novelty assessment | Feasibility | Main risk | Status |
-|---|---|---:|---:|---|---|
-| 1 | **SemLibSQL-Γ: contract-conditioned semantic library learning** | 7/10 provisional | Medium | could be judged as babble/ReGAL + SQL constraints | **RECOMMENDED** |
-| 2 | **TemporalSQL-Drift: bitemporal business-semantics benchmark** | 6.5/10 | High | general bitemporal agent-memory work already exists | BACKUP |
-| 3 | **DualSQL: cross-task dual-control database exploration** | 7/10 | Medium-Low | heavy sequential/RL evaluation; TRUST-SQL/SDE-SQL nearby | BACKUP / MOONSHOT |
-| 4 | DenoRepair: sparse result-feedback repair for analytical SQL | 5/10 | High | result-feedback query refinement exists since at least 2013 | DEPRIORITIZED |
-| 5 | AutoSemanticView / self-materializing semantic layer | 3/10 | Medium | Snowflake Autopilot + recent logical-design paper collide directly | ELIMINATED AS PAPER 1 |
-| 6 | Persistent ambiguity / disagreement persistence | 4/10 | High | PRACTIQ, AmbiSQL, CLUES substantially occupy space | ELIMINATED AS MAIN THESIS |
-| 7 | Basic failure/semantic memory | 2/10 | High | AgentSM, GATE, continual-feedback Text2SQL | ELIMINATED |
-
-The recommendation optimizes for **one sharp mechanism with a cheap kill test**, rather than highest speculative novelty.
+**Conclusion:** do not rescue the project by adding another planner/critic/search loop.
 
 ---
 
-# 4. Recommended idea — SemLibSQL-Γ
+# 2. The surviving research object: Guarded Abstraction Gap
 
-## 4.1 Problem anchor
+Let a warehouse contract `Γ` contain high-confidence facts such as:
 
-A long-lived SQL agent repeatedly sees different implementations of the same hidden warehouse operation:
+- primary/foreign keys;
+- uniqueness and nullability;
+- dbt tests/contracts;
+- validated lineage/relationship facts;
+- governed metric definitions;
+- evidence-backed business/data invariants.
 
-- latest valid record as of a date;
-- slowly-changing-dimension state lookup;
-- deduplicate before a many-to-one join;
-- fiscal-period mapping;
-- recognized-revenue calculation;
-- eligible-population denominator;
-- bridge-table traversal.
+For SQL subprograms `P` and `Q`, the relevant relation is not necessarily global equivalence but:
 
-Nearest-query memory can reuse old answers, while generic library learners can compress recurring syntax. However, SQL has a distinctive form of reuse:
+`P ≡_Γ Q`
 
-> Two programs can be equivalent **only because a particular warehouse satisfies specific constraints or business contracts**.
+meaning they are interchangeable for the relevant observable behavior when the applicable part of `Γ` holds.
 
 Examples:
 
-- `COUNT(*)` and `COUNT(DISTINCT id)` are equivalent only under a uniqueness condition on `id`.
-- an inner join and a semijoin-like formulation can coincide under key/existence constraints;
-- two latest-record idioms can be interchangeable only under timestamp/key tie assumptions;
-- a physical table, a dbt model, and a semantic view may be interchangeable only under an asserted data contract.
+- `COUNT(*)` and `COUNT(DISTINCT customer_id)` coincide only under an appropriate uniqueness/grain condition.
+- two latest-record idioms coincide only under specified key/time/tie semantics.
+- an inner-join formulation and a relationship-based abstraction coincide only if coverage/cardinality assumptions hold.
+- a base-table computation and a semantic/dbt view coincide only if the view's contract is valid for that context.
 
-The relevant object is therefore **contextual equivalence**, not global syntax equality.
+### Guarded Abstraction Gap (GAG)
 
-## 4.2 Formal target
+Define the empirical gap between:
 
-Let `Γ` denote a warehouse contract containing supported facts such as:
+1. abstractions recoverable under syntax or a **global/fixed** equational theory, and
+2. abstractions recoverable only when equivalence is conditioned on **local warehouse contracts**, while maintaining low false-merge rate.
 
-- primary / foreign keys;
-- uniqueness and nullability;
-- dbt tests and declared contracts;
-- validated lineage relationships;
-- verified business rules;
-- evidence-backed data invariants.
+If this gap is negligible on realistic workloads, the SemLibSQL line should be killed even if an implementation can be built.
 
-For programs `P` and `Q`, define the target relation:
+This turns the project from “another library learner” into a falsifiable scientific question about the structure of enterprise SQL experience.
 
-`P ≡_Γ Q` iff, for databases satisfying the relevant contract `Γ`, the programs have the same intended observable behavior.
+---
 
-SemLibSQL-Γ does **not** need to prove full SQL equivalence. It maintains a conservative three-valued judgment:
+# 3. Final proposed method: SemLibSQL-Γ
 
-`EQUIVALENT / NOT_EQUIVALENT / UNKNOWN`.
-
-## 4.3 Key method idea
-
-For each reusable operator, learn not only a body but also a **scope contract**:
+Each learned library item is a pair:
 
 ```text
-latest_snapshot(relation, key, effective_time, as_of)
-requires:
-  key identifies one business entity
-  effective_time defines valid ordering
-  tie behavior is specified
-  rows after as_of are excluded
+(operator, guard)
 ```
 
-The core research object is therefore:
+rather than an unguarded macro.
 
-> **abstraction + applicability conditions + evidence**, rather than abstraction alone.
+Example:
 
-A proposed pipeline:
+```text
+operator:
+  latest_snapshot(relation, key, effective_time, as_of)
 
-1. collect verified `(question, warehouse context, SQL, execution evidence)` histories;
-2. lower SQL into a relational/typed plan;
-3. assemble candidate warehouse contracts from explicit metadata plus evidence-backed inferred constraints;
-4. construct hard-positive and hard-negative candidate pairs/subprograms;
-5. apply constraint-aware equivalence evidence: formal/bounded reasoning where supported, plus contract-preserving counterexample/differential execution otherwise;
-6. induce reusable parameterized abstractions over equivalence-supported instances;
-7. infer a compact sufficient scope contract for each abstraction rather than assuming universal validity;
-8. expose only in-scope abstractions to later Text2SQL generation;
-9. fall back to the base generator whenever applicability is unknown.
+guard:
+  key denotes the target business grain
+  effective_time defines the intended validity ordering
+  rows after as_of are excluded
+  tie semantics are resolved
 
-## 4.4 What is actually novel if the idea succeeds
+evidence:
+  verified supporting programs
+  equivalence/counterexample results
+  constraint provenance
+```
 
-The defensible contribution is **not** any individual component. It is the empirical/method claim that:
+### Pipeline
 
-1. fixed-theory/generic library learning misses valuable SQL reuse because useful equivalences are **warehouse-conditional**;
-2. learning/scoping abstractions with explicit applicability contracts recovers that reuse without unsafe false merges;
-3. those scoped abstractions support unseen composition better than episodic/structured memory.
+1. collect verified `(question, context, SQL, evidence)` histories;
+2. lower SQL to a typed relational plan;
+3. assemble candidate contract facts with provenance classes (`DECLARED`, `VERIFIED`, `EMPIRICAL`, `HYPOTHESIS`);
+4. propose candidate repeated subprogram families;
+5. search for both a reusable abstraction and a compact sufficient guard explaining which instances are interchangeable;
+6. use conservative equivalence evidence: safe rewrites, bounded/formal checking where possible, and adversarial/differential database instances;
+7. retain `EQUIVALENT / NOT_EQUIVALENT / UNKNOWN`; do not force unknown pairs together;
+8. expose an operator only when its guard is satisfied in the new context;
+9. otherwise fall back to the base Text2SQL system.
 
-This is the exact claim the first experiment must attempt to falsify.
+### Critical refinement
+
+The paper must compare against a **composed PL baseline**, not strawmen:
+
+> E-Stitch/babble-style library learning over e-graphs + conditional/predicate reasoning + Alive-Infer-style precondition inference.
+
+If that composed baseline matches the proposed joint system, the method novelty is gone. A positive paper then requires either a strong new empirical finding (the Guarded Abstraction Gap benchmark/analysis) or a demonstrable advantage from **jointly** optimizing abstraction, guard compactness, workload reuse, and downstream Text2SQL composition.
 
 ---
 
-# 5. Closest prior work and delta
+# 4. Ranked ideas after the final novelty audit
 
-| Prior work | Strong overlap | Remaining delta SemLibSQL-Γ must prove |
+| Rank | Direction | Novelty (provisional) | Cost to falsify | Verdict |
+|---|---|---:|---:|---|
+| 1 | **SemLibSQL-Γ / Guarded Abstraction Gap** | **5.5–6/10** | Low–Medium | **RECOMMENDED AS HIGH-RISK, CHEAP-TO-KILL BET** |
+| 2 | **TemporalSQL-Drift** — historical business-semantics benchmark | 6.5/10 | Low–Medium | **BEST BACKUP** |
+| 3 | **DualSQL** — cross-task dual-control exploration | 7/10 | High | MOONSHOT BACKUP |
+| 4 | DenoRepair — sparse denotational-feedback repair | 5/10 | Medium | DEPRIORITIZED |
+| 5 | AutoSemanticView | 3/10 | — | ELIMINATED AS PAPER 1 |
+
+SemLibSQL remains first not because it has the highest raw novelty score, but because it has the sharpest **48-hour-style falsification path** and the strongest route from a positive mechanism result to a method paper.
+
+---
+
+# 5. Closest work and exact delta
+
+| Work | What it already does | What SemLibSQL-Γ would still need to demonstrate |
 |---|---|---|
-| DreamCoder / Stitch | library induction from program corpora | SQL/warehouse contextual equivalence and scoped applicability |
-| **babble / LLMT** | library learning modulo an equational theory; handles syntactic variation with e-graphs | theory/validity is not assumed globally fixed; abstractions carry warehouse-specific conditions and are evaluated for Text2SQL composition |
-| **ReGAL** | execution-validated refactoring into reusable functions | no contract-conditioned query equivalence or SQL-specific scope safety objective |
-| U-semiring / VeriEQL | SQL equivalence under integrity constraints | no program-library induction or held-out Text2SQL composition |
-| AgentSM | reusable structured semantic memory | retrieve prior structured programs rather than induce a new reusable language |
-| GATE | execution-grounded reusable semantic memory | stores validated grounding facts, not abstraction + precondition induction |
-| Snowflake Semantic View Autopilot | mines workload/BI assets into semantic models | product-level governed semantic model generation; does not establish contract-conditioned program-library learning versus PL baselines |
-| Text-to-SQL Friendly Logical Database Design | workload-guided schema abstractions/views | changes logical schema; does not learn scoped program abstractions for unseen composition |
+| DreamCoder / Stitch | reusable program libraries | warehouse-conditioned semantics and Text2SQL reuse |
+| babble / LLMT | library learning modulo supplied theory | local/workload-specific guarded equivalence, guard generalization, downstream Text2SQL composition |
+| **E-Stitch (2026)** | efficient library learning directly over e-graphs | same as above; must be a strong baseline |
+| ReGAL | execution-validated reusable refactorings | no warehouse-contract/guard objective |
+| Predicate/Colored E-Graphs | conditional equality under assumptions | no Text2SQL library induction/compositional evaluation |
+| Alive-Infer | automatic precondition inference for optimizations | no joint warehouse abstraction learning from Text2SQL workload |
+| U-semiring / VeriEQL | SQL equivalence under constraints | no reusable language induction |
+| AgentSM | structured Text2SQL semantic memory | retrieves/reuses programs rather than inducing a guarded language |
+| GATE | execution-grounded reusable semantic facts | grounding memory, not guarded program abstraction |
+| Snowflake Semantic View Autopilot | workload/BI → governed semantic model | product semantic modeling, not the GAG/guarded-library hypothesis |
 
-### Novelty verdict
+### Final novelty verdict
 
-**PROCEED WITH CAUTION.** The intersection remains plausible, but the collision with **babble** is serious. If Gate A shows that a strong babble/ReGAL-style baseline with a carefully supplied SQL theory matches SemLibSQL-Γ, the idea should be killed rather than rescued with additional agent machinery.
-
----
-
-# 6. Core claims and kill conditions
-
-## C1 — Contract-conditioned abstraction discovery
-
-**Claim:** warehouse-conditioned equivalence improves hard-positive abstraction recall at matched false-merge precision relative to syntactic/global-theory library learning.
-
-**Kill if:** a strong fixed-theory babble/Stitch/ReGAL-style baseline is statistically/qualitatively equivalent after receiving safe SQL normalization rules.
-
-## C2 — Scoped abstractions generalize compositionally beyond memory
-
-**Claim:** automatically induced scoped operators improve unseen motif compositions over the strongest verified-query / structured-memory baseline at matched context budget.
-
-**Kill if:** memory closes the gap, or gains are tiny/unstable/single-database.
-
-## C3 — Scope contracts are necessary for safety
-
-**Claim:** attaching applicability conditions reduces negative transfer on near-miss/hard-negative cases compared with an unscoped learned library.
-
-**Kill if:** scope information provides no measurable safety benefit or is effectively supplied by hand.
+**PROCEED ONLY AS A FALSIFICATION BET.** A paper is not justified by implementation novelty alone. Gate A must reveal a meaningful Guarded Abstraction Gap on realistic SQL and show that it is not already captured by a strong composite PL baseline.
 
 ---
 
-# 7. Internal adversarial review
+# 6. Claims and kill gates
 
-Because a configured independent reviewer backend is not exposed in this session, this is **same-model red-team analysis, not external acceptance**.
+## C1 — Existence of a Guarded Abstraction Gap
 
-### Strongest reviewer objection 1: “This is just babble applied to SQL.”
+**Claim:** realistic Text2SQL histories contain high-value hard positives that global/fixed-theory library learning misses but warehouse-conditioned equivalence recovers at comparable false-merge precision.
 
-This objection is valid unless the experiment isolates **context-conditioned applicability**. The paper must directly compare against LLMT/babble-style library learning with a generous SQL equational theory.
+**Kill if:** the strongest E-Stitch/babble/ReGAL composite recovers the same abstractions, or any gain is mostly alias/CTE/format normalization.
 
-### Strongest reviewer objection 2: “Integrity-constraint query equivalence is old database theory.”
+## C2 — Guard learning improves safety
 
-Also valid. Equivalence machinery must be treated as an oracle/component. The contribution must be about learning scoped reusable abstractions for Text2SQL, not equivalence itself.
+**Claim:** inferred/derived applicability guards reject near-miss reuse cases where an unguarded library silently applies the wrong semantic operation.
 
-### Strongest reviewer objection 3: “Snowflake already mines query logs into semantic views.”
+**Kill if:** guard information adds negligible safety, or requires motif-by-motif manual labeling.
 
-This prevents broad product claims about automatic semantic-layer construction. The paper must focus on the narrower scientific hypothesis: program abstraction under contextual equivalence and held-out composition versus memory/library-learning baselines.
+## C3 — Guarded abstractions beat memory on unseen composition
 
-### Strongest reviewer objection 4: “A human semantic layer will obviously win.”
+**Claim:** on withheld motif combinations, the learned guarded language outperforms matched-context verified-query and structured-memory baselines.
 
-Include an oracle/manual semantic library as an upper bound. If automatic induction recovers little of its benefit, report failure rather than overclaiming.
+**Kill if:** memory closes the gap or gains are tiny/unstable/single-database.
 
-### Strongest reviewer objection 5: “The benchmark can be gamed by templates.”
+## C4 — Joint induction matters (optional method claim)
 
-The held-out split must prevent full-query near duplicates, literal-only paraphrases, and single-schema memorization. Hard positives must contain genuinely distinct implementation families; hard negatives must differ on decision-relevant semantics.
+**Claim:** jointly selecting abstraction + guard for downstream reuse beats a pipeline that independently applies E-Stitch/babble then Alive-Infer-style guard inference.
 
----
-
-# 8. Backup ideas
-
-## 8.1 TemporalSQL-Drift — backup with lower implementation risk
-
-Build a benchmark where warehouse/business definitions change over time and questions distinguish:
-
-- semantics valid at historical event time;
-- semantics known by the agent at historical knowledge time;
-- recomputation of historical data under today's definition.
-
-General bitemporal agent-memory work already exists, including recent 2026 work, so the contribution must be Text2SQL-specific **business-semantic drift evaluation**, not “bitemporal memory” itself.
-
-Use this backup if SemLibSQL Gate A fails but the project still wants a long-horizon database-agent paper.
-
-## 8.2 DualSQL — higher-risk backup
-
-Optimize database probes for both current-query success and reduction of uncertainty for future tasks in the same warehouse.
-
-This differs from SDE-SQL/TRUST-SQL only if evaluation is truly cross-task and cumulative. It is scientifically attractive but requires a longer sequential environment and is therefore not the first experiment to run.
+**Kill if:** the pipeline baseline is equivalent. In that case, retain only a benchmark/finding paper if the Guarded Abstraction Gap itself is strong.
 
 ---
 
-# 9. Eliminated ideas and why
+# 7. Possible paper outcomes
 
-- **Generic active schema/POMDP agent** — TRUST-SQL and SDE-SQL make this crowded.
-- **Basic semantic/failure memory** — AgentSM, GATE, continual human-feedback Text2SQL.
-- **Generic semantic IR/compiler** — semantic-layer-mediated agents already provide this.
-- **Naive Result2SQL** — *A framework for query refinement with user feedback* (2013) already refines SQL from unexpected/missing result tuples; provenance/why-not literature is even older.
-- **AutoSemanticView as Paper 1** — Snowflake Semantic View Autopilot plus recent workload-guided logical-design work collide directly.
-- **Generic ambiguity/clarification** — PRACTIQ, AmbiSQL, CLUES.
-- **MCTS/search as novelty** — Alpha-SQL and extensive test-time-scaling work already occupy it.
-- **Memory poisoning as main direction** — 2026 general agent-memory security has rapidly become crowded (MemSecBench, MemPoison, sleeper poisoning, etc.).
-
----
-
-# 10. Refined deliverables
-
-- Active research contract: `research/text2sql-agent/idea-stage/docs/research_contract.md`
-- Refined proposal: `research/text2sql-agent/refine-logs/FINAL_PROPOSAL.md`
-- Experiment plan: `research/text2sql-agent/refine-logs/EXPERIMENT_PLAN.md`
-- Experiment tracker: `research/text2sql-agent/refine-logs/EXPERIMENT_TRACKER.md`
-- Historical exploratory material: `research/text2sql-agent/round1-*` through `round4-semlibsql-pilot/` and the earlier top-level research memos.
+| Gate-A finding | Gate-B finding | Honest outcome |
+|---|---|---|
+| no GAG | — | kill SemLibSQL line |
+| GAG exists, generic composite baseline handles it | useful or not | benchmark/analysis paper at best; no strong method claim |
+| GAG exists, joint method improves abstraction/safety | composition fails | analysis/method component paper; do not claim Text2SQL benefit |
+| GAG exists, joint method improves and composition wins | positive | full SemLibSQL method paper |
+| oracle guarded library helps, automatic guard/abstraction induction fails | mixed | automatic induction remains unsolved; negative diagnostic result |
 
 ---
 
-# 11. Stop boundary: experiment is now required
+# 8. Best backup: TemporalSQL-Drift
 
-The idea stage can no longer improve materially by adding more agent components. The next unresolved questions are empirical:
+If Gate A kills SemLibSQL, the most defensible next idea is a benchmark around **business-semantic drift over time**, distinguishing:
 
-1. Do warehouse-conditioned equivalence judgments actually recover hard-positive motif families that strong babble/ReGAL-style baselines miss?
-2. Can the method keep false semantic merges low on near-miss queries?
-3. Does the induced library help held-out composition beyond strong verified memory?
+1. the definition valid at historical event time;
+2. what the agent knew at historical knowledge time;
+3. recomputation of historical data under today's definition.
 
-Answering these requires building/executing the controlled SQL corpus described in the experiment plan. **No experiment has been run in this idea-discovery phase.**
-
-Per the user instruction, stop here rather than fabricate pilot evidence.
+General bitemporal memory is not new, so the contribution would be a Text2SQL-specific evaluation of changing metric/entity semantics and historical reproducibility. The final literature search found substantial industry concern about metric-definition drift but no directly matching Text2SQL benchmark in the searched results.
 
 ---
 
-# 12. Idea-stage verdict
+# 9. Eliminated directions
 
-**Selected:** SemLibSQL-Γ / Contract-Conditioned Semantic Library Learning  
-**Novelty:** promising but collision-sensitive; provisional 7/10  
-**Method maturity:** sufficiently specified for a falsification pilot  
-**Empirical evidence:** none yet  
-**Formal external-review gate:** unavailable / not passed  
-**Next action:** run Gate A only; continue to Gate B only if Gate A survives.
+- active schema exploration / POMDP as the main novelty;
+- generic semantic/failure memory;
+- generic semantic IR/compiler;
+- naive result-feedback SQL repair;
+- automatic semantic-view generation as Paper 1;
+- generic ambiguity/clarification;
+- MCTS/test-time scaling as novelty;
+- memory poisoning as main Text2SQL thesis;
+- generic program-library learning;
+- generic e-graph/conditional rewrite/precondition inference.
+
+These can appear only as components, baselines, or future extensions.
+
+---
+
+# 10. Canonical deliverables
+
+- `idea-stage/IDEA_REPORT.md` — this canonical decision record.
+- `idea-stage/IDEA_CANDIDATES.md` — compact shortlist.
+- `idea-stage/docs/research_contract.md` — active research contract.
+- `refine-logs/FINAL_PROPOSAL.md` — frozen method formulation.
+- `refine-logs/EXPERIMENT_PLAN.md` — Gate A/B/C design.
+- `refine-logs/EXPERIMENT_TRACKER.md` — all empirical runs currently NOT STARTED.
+
+Historical breadth/deep-dive material remains under the earlier round directories and is not the active specification.
+
+---
+
+# 11. Stop boundary
+
+The idea stage has reached the point where the remaining uncertainty is **empirical rather than conceptual**:
+
+- Is the Guarded Abstraction Gap actually large enough to matter?
+- Can guards be inferred/verified without hand-authoring the answer?
+- Does any advantage survive E-Stitch/babble + conditional-equality + precondition-inference baselines?
+- Does it help held-out Text2SQL composition beyond memory?
+
+Answering those questions requires constructing executable SQL/database cases and running Gate A.
+
+**No experiment has been run. No pilot signal is claimed.**
+
+Per the user's requested boundary, stop here before empirical execution.
+
+---
+
+## Final idea-stage verdict
+
+**Active bet:** SemLibSQL-Γ / Guarded Abstraction Gap  
+**Status:** idea specification frozen; ready for empirical falsification  
+**Novelty confidence:** moderate-low but scientifically testable; strongest collisions explicitly baselined  
+**Formal independent reviewer gate:** unavailable / not passed  
+**Next action when resources are provided:** run Gate A only; do not build the full agent first.
