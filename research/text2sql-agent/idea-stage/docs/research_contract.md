@@ -1,132 +1,190 @@
 # Research Contract: SemLibSQL-Γ
 
-> **Focused working contract for the selected Text2SQL idea.**  
-> **Date:** 2026-08-23  
-> **Status:** selected; implementation and experiments not started.
+**Paper-facing working title:** **SemLibSQL-Γ: Learning Guarded Semantic Operators from Verified Text-to-SQL Workloads**  
+**Date:** 2026-08-23  
+**State:** idea selected and frozen; empirical validation not started.
 
 ## Selected Idea
 
-- **Paper-facing name:** **SemLibSQL: Learning Reusable SQL Abstractions with Warehouse-Conditioned Equivalence**
-- **Internal shorthand:** SemLibSQL-Γ / ContractLibSQL
-- **Description:** Learn a warehouse-specific library of reusable semantic operators from verified Text2SQL histories. Unlike ordinary query memory or generic program-library learning, candidate SQL implementations are grouped using equivalence evidence conditioned on warehouse-specific integrity/business contracts. Each induced operator carries explicit applicability conditions and evidence; it is reusable only when those conditions hold.
-- **Source:** `research/text2sql-agent/idea-stage/IDEA_REPORT.md`, Idea #1
-- **Selection rationale:** strongest remaining combination of novelty, falsifiability, and bounded experiment cost after eliminating active-schema, generic memory, generic semantic-layer, result-feedback, ambiguity, and environment-modification ideas with recent/older prior art.
+SemLibSQL-Γ studies whether repeated warehouse SQL contains a **Guarded Abstraction Gap (GAG)**: reusable semantic operations that generic syntax/global-theory library learners fail to recover safely because equivalence depends on local warehouse contracts. The system learns/reuses an `(operator, guard)` pair rather than an unconditional macro.
+
+Example:
+
+```text
+operator:
+  latest_snapshot(relation, key, effective_time, as_of)
+
+guard:
+  key has the target business grain
+  effective_time is the intended validity order
+  as_of excludes future rows
+  tie semantics are resolved
+```
+
+The active research question is not “can we learn functions from SQL?”; generic library learning already does that. It is whether **warehouse-conditioned guards materially change abstraction discovery and safe compositional reuse**.
+
+## Selection Rationale
+
+This direction survived repeated filtering of active-schema agents, generic memory, semantic layers, result-feedback repair, ambiguity/clarification, test-time search, and broad long-horizon-agent ideas. Its final novelty is modest because the closest PL components are strong, but it is cheap to falsify and has a clear scientific fork:
+
+- no Guarded Abstraction Gap → kill;
+- gap exists but generic PL composition handles it → benchmark/analysis result only;
+- gap exists and joint guarded induction helps → method paper candidate.
 
 ## Core Claims
 
-1. **Contract-conditioned abstraction discovery:** Warehouse-conditioned equivalence recovers reusable semantic motif families across heterogeneous SQL realizations better than syntactic/global-theory library learners at matched false-merge precision.
-2. **Compositional generalization beyond memory:** Scoped induced operators improve held-out compositions over strong verified-query and structured-semantic-memory baselines under matched context budget.
-3. **Scope safety:** Explicit operator applicability contracts reduce negative transfer on near-miss queries compared with unscoped abstraction reuse.
+1. **C1 — Guarded Abstraction Gap:** Warehouse-conditioned equivalence recovers semantically coherent hard positives at matched false-merge precision beyond strong fixed-theory/global library-learning baselines.
+2. **C2 — Guard safety:** Applicability guards reject near-miss reuse when a relevant warehouse condition is violated.
+3. **C3 — Composition beyond memory:** Guarded operators improve held-out combinations of known motifs over strong verified-query/structured-memory baselines.
+4. **C4 — Joint induction (optional):** Joint abstraction+guard selection improves over a pipeline that separately learns e-graph abstractions and then infers preconditions.
+
+## Closest Prior Work That Must Be Treated as Baselines
+
+### Program-library learning
+
+- DreamCoder
+- Stitch
+- babble / Library Learning Modulo Theory (LLMT)
+- ReGAL
+- **E-Stitch (EGRAPHS 2026)** — top-down Stitch-style library learning directly over e-graphs
+
+### Conditional reasoning / guard inference
+
+- classical conditional rewriting
+- Colored E-Graphs
+- **Predicate E-Graphs with Symbolic Conditional Rewriting (EGRAPHS 2026)**
+- Combining E-Graphs with Abstract Interpretation
+- **Alive-Infer (PLDI 2017)** — data-driven precondition inference for optimization rules
+- general precondition-inference literature
+
+### SQL/database side
+
+- SQL equivalence under integrity constraints
+- U-semiring-style SQL equivalence
+- VeriEQL
+- workload-driven constraint/rewrite discovery
+
+### Text2SQL reuse
+
+- AgentSM
+- GATE
+- semantic-layer-mediated Text2SQL
+- Snowflake Semantic View Autopilot
 
 ## Method Summary
 
-Let `Γ` be a warehouse contract assembled from high-confidence facts such as primary/foreign keys, uniqueness, nullability, dbt tests/contracts, validated lineage, and evidence-backed business invariants. SemLibSQL considers two SQL plans contextually equivalent when their observable behavior agrees for database instances satisfying the relevant portion of `Γ`.
+### Warehouse contract Γ
 
-The system lowers verified SQL histories to a typed relational representation, generates candidate reusable subprogram families, and obtains conservative equivalence evidence using constraint-aware formal/bounded reasoning where supported plus contract-preserving differential/counterexample execution elsewhere. The judgment is three-valued: `EQUIVALENT`, `NOT_EQUIVALENT`, or `UNKNOWN`; unknown pairs are not force-merged.
+Each fact carries provenance:
 
-Library induction then searches for parameterized abstractions across equivalence-supported instances. Crucially, every learned abstraction stores a **scope contract** describing the sufficient conditions under which it may be reused. A new query can compose these operators only when the current warehouse/context satisfies their preconditions; otherwise generation falls back to the base Text2SQL method.
+- `DECLARED`: explicit schema/dbt/semantic contract;
+- `VERIFIED`: supported by a strong deterministic/formal/test check;
+- `EMPIRICAL`: observed in data but not guaranteed;
+- `HYPOTHESIS`: unsafe for autonomous library reuse.
 
-The research contribution is not SQL equivalence, e-graphs, program-library learning, execution validation, or memory individually. It is the claim that **context-dependent warehouse laws materially change which abstractions are discoverable/useful, and that encoding those laws as operator scope conditions enables safe compositional reuse**.
+The first experiment should permit only `DECLARED` + `VERIFIED` facts to certify reuse, with empirical facts as a later ablation.
+
+### Candidate equivalence
+
+For candidate SQL plans `P` and `Q`, seek evidence for `P ≡_Γ Q` using:
+
+1. safe relational normalization;
+2. formal/bounded equivalence under supported constraints;
+3. contract-preserving differential/counterexample database instances;
+4. grain/lineage/invariant checks.
+
+Result is always one of:
+
+```text
+EQUIVALENT
+NOT_EQUIVALENT
+UNKNOWN
+```
+
+`UNKNOWN` must be preserved.
+
+### Guarded abstraction induction
+
+For each candidate recurring family, learn/derive:
+
+```text
+semantic skeleton
+parameters
+supporting programs
+compact sufficient guard
+known counterexamples
+constraint provenance
+```
+
+The system must not present the guard as novel precondition-inference technology. The novelty bet is its **workload-conditioned use as the organizing object for Text2SQL abstraction learning and composition**.
+
+### Inference
+
+Use a learned operator only if the current context satisfies its guard; otherwise fall back to the base Text2SQL generator.
 
 ## Minimum Convincing Evidence
 
-### Gate A — mechanism necessity
+### Gate A — the only immediate experiment
 
-A controlled corpus of hard-positive and hard-negative SQL pairs/motif families must show that SemLibSQL-Γ moves the precision–recall frontier versus:
+Show a real Guarded Abstraction Gap against:
 
-- lexical/token normalization;
-- normalized AST clustering;
-- Stitch-style syntax library learning;
-- babble/LLMT-style learning with a strong fixed SQL equational theory;
-- ReGAL-style execution-refactoring.
+- token/AST baselines;
+- Stitch;
+- babble/LLMT;
+- **E-Stitch**;
+- ReGAL;
+- a **composed conditional-PL baseline**: e-graph library learning + predicate/conditional reasoning + Alive-Infer-style guard inference.
 
-The critical result is not generic cluster quality. It is **better recovery of contextually equivalent cross-realization motifs without increasing false semantic merges**.
+Need hard positives where global/syntactic theory cannot safely merge implementations and hard negatives where a missing guard changes semantics.
 
-### Gate B — downstream value
+### Gate B
 
-On held-out motif compositions, SemLibSQL must outperform the strongest of:
-
-- stateless Text2SQL;
-- matched-context verified-query retrieval;
-- AgentSM-like structured memory;
-- GATE/curated semantic-grounding memory;
-- generic learned library;
-- manual/oracle semantic library as an upper-bound diagnostic.
-
-### Safety gate
-
-Hard negatives that violate a learned operator's applicability conditions must show that scoped use is safer than unscoped use.
+Only if A passes: held-out motif composition versus matched-context query retrieval, AgentSM-like structured memory, GATE-like grounding memory, strongest generic library baseline, and an oracle/manual guarded library.
 
 ## Kill Conditions
 
-Kill the core paper thesis if any of the following holds:
+Kill the current method thesis if:
 
-1. babble/ReGAL/Stitch with generous SQL rewrite/equivalence support matches the proposed method;
-2. improvements come only from alias/CTE/format normalization;
-3. false merges materially increase when hard-positive recall improves;
-4. verified-query/structured memory matches held-out composition performance at matched context;
-5. a manual semantic library helps strongly while automatic induction recovers negligible benefit;
-6. operator scope requires substantial manual business labeling, making “automatic induction” misleading.
+1. a strong E-Stitch/babble/ReGAL baseline recovers the same abstraction frontier;
+2. the composed conditional-PL baseline matches joint SemLibSQL-Γ;
+3. improvements reduce to superficial SQL normalization;
+4. false semantic merges rise materially;
+5. useful guards require per-motif manual authoring;
+6. verified/structured memory matches held-out composition at equal context;
+7. the Guarded Abstraction Gap is negligible on realistic workloads.
 
-Do **not** add RL, MCTS, multi-agent debate, extra verifiers, or more memory layers to rescue a failed Gate A.
+**Do not add RL, MCTS, multi-agent debate, extra critics, or memory routing to rescue a failed Gate A.**
 
 ## Experiment Design
 
-- **Phase A corpus:** 8–12 semantic motifs; initial target 200–500 verified SQL programs; at least 3 warehouse schemas/projects; deliberately diverse SQL realization families.
-- **Hard positives:** same motif, radically different SQL structure/dialect/decomposition.
-- **Hard negatives:** highly similar SQL shape but decision-relevant semantic difference (grain, time cutoff, key, join cardinality, null policy, denominator, tie handling).
-- **Phase B split:** individual motifs and some combinations observed in history; target combinations withheld.
-- **Metrics:** hard-positive recall at fixed precision, false-merge rate, abstraction purity, coverage, semantic execution accuracy on held-out composition, first-attempt success, token/tool cost, negative-transfer rate.
-- **Statistics:** paired task outcomes; bootstrap confidence intervals; McNemar for binary correctness where applicable; per-motif and per-database breakdowns.
-- **Compute:** Gate A should be CPU/SQL-heavy and deliberately cheap; large-model training is not required to decide whether the core mechanism is worth continuing.
+- 8–12 motifs, 200–500 verified SQL programs, ≥3 schemas/projects.
+- Hard positives: semantically same only under specified warehouse laws; radically different SQL realization.
+- Hard negatives: visually/structurally near but one law is violated (grain, uniqueness, coverage, nullability, time/tie policy, metric definition).
+- Primary Gate-A metrics: hard-positive recall at fixed high precision, false-merge rate, cross-realization abstraction support, guard compactness/accuracy, UNKNOWN rate.
+- Gate-B metrics: semantic execution accuracy, first-attempt success, compositional gap, tokens/tools, negative transfer.
+- No large-model training is required before Gate A determines whether the idea deserves further work.
 
-## Closest Baselines / Prior Work
+## Backup Direction
 
-| Work | What it establishes | Why it is not the claimed contribution |
-|---|---|---|
-| DreamCoder | learned reusable program libraries | not SQL/warehouse contextual equivalence |
-| Stitch | scalable corpus-guided library learning | syntax/program corpus abstraction |
-| babble / LLMT | library learning modulo an equational theory | strongest conceptual prior; theory is supplied and abstractions are not evaluated as warehouse-scoped Text2SQL concepts |
-| ReGAL | reusable functions learned by execution-validated refactoring | no constraint-conditioned SQL equivalence/scope contract |
-| U-semiring / VeriEQL | SQL equivalence under integrity constraints | no library induction/Text2SQL composition |
-| AgentSM | structured reusable Text2SQL memory | retrieval/reuse, not new operator language induction |
-| GATE | execution-grounded semantic memory | stores groundings, not abstraction + applicability-condition induction |
-| Snowflake Semantic View Autopilot | workload/BI-driven semantic model generation | product-level semantic modeling; distinct evaluation object |
-
-## Key Decisions
-
-- Keep the contribution **one mechanism deep**: abstraction under contextual equivalence.
-- Treat equivalence provers and e-graphs as components/baselines, not novelty claims.
-- Preserve `UNKNOWN`; do not force equivalence for coverage.
-- Make applicability scope a first-class artifact of every operator.
-- Use a manual semantic library as an upper-bound diagnostic.
-- Freeze all unrelated agent architecture until Gate A passes.
-
-## Known Risks
-
-- **Combination-of-known-techniques critique:** The paper must show an empirical phenomenon that generic LLMT/refactoring cannot reproduce.
-- **Constraint quality:** Inferred warehouse contracts can be wrong; initial experiments should separate declared/high-confidence constraints from speculative learned ones.
-- **Benchmark artificiality:** Hard positives/negatives must include realistic SQL idioms and not only hand-designed toy pairs.
-- **Applicability leakage:** Test operators on near-miss contexts where one precondition is intentionally violated.
+If Gate A kills SemLibSQL-Γ, switch to **TemporalSQL-Drift**: a Text2SQL benchmark for changing business semantics that distinguishes valid time, knowledge time, and recomputation under current definitions. General bitemporal memory is prior art; the contribution would be evaluation of business-semantic drift/historical reproducibility in database agents.
 
 ## Status
 
-- [x] Idea selected
-- [x] Literature landscape completed
-- [x] Novelty risks identified
-- [x] Internal adversarial review completed
-- [x] Method and falsification plan frozen
-- [ ] Formal independent reviewer acceptance
-- [ ] Gate-A corpus instantiated/executed
-- [ ] Gate-A mechanism result
-- [ ] Gate-B held-out composition result
-- [ ] Full method implementation
-- [ ] Paper draft
+- [x] broad literature survey
+- [x] repeated novelty filtering
+- [x] final last-mile PL/database novelty stress test
+- [x] active idea selected
+- [x] internal adversarial review
+- [x] final proposal
+- [x] pre-registered experiment design
+- [ ] independent external reviewer acceptance
+- [ ] Gate-A corpus execution
+- [ ] Gate-A result
+- [ ] Gate-B result
+- [ ] implementation / paper
 
 ## Next-Step Pointer
 
-Proceed only to the experiment described in:
-
 `research/text2sql-agent/refine-logs/EXPERIMENT_PLAN.md`
 
-The first decision is **Gate A: does contract-conditioned equivalence change abstraction discovery beyond strong generic library-learning baselines?**
+**Stop before execution:** the next unresolved question is empirical.
