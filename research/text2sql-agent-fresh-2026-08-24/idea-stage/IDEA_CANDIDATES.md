@@ -1,46 +1,63 @@
 # Fresh Text2SQL × Agent Idea Candidates
 
-**Date:** 2026-08-24  
+**Updated:** 2026-08-26  
 **Run:** independent from previous Text2SQL research branches  
 **Formal reviewer:** unavailable in this connector session; novelty is provisional.  
 **Pilots:** not run.  
-**Latest novelty recheck:** includes August 2026 work found after the first-pass ranking.
+**Latest expansion:** adds epistemic completeness, adaptive statistical validity, access-control epistemics, answer robustness, data-quality semantics, and database-workload externalities.
+
+## Combined provisional shortlist
 
 | # | Idea | Core hypothesis | Novelty | Feasibility | Status |
 |---:|---|---|---:|---:|---|
-| 1 | **EvidenceSketch-SQL** | task-adaptive DB evidence sketches beat raw probe rows at matched context/privacy budget | 7.5 | 8.5 | RECOMMENDED |
-| 2 | **Schema-Evolution × Memory Poisoning** | verified memories become harmful after controlled schema/business drift | 7.5 | 8.0 | RECOMMENDED |
-| 3 | **CausalGuard-SQL** | identifiability gating prevents descriptive SQL evidence from becoming unsupported causal claims | 7.0–7.5 | 7.0 | RECOMMENDED |
-| 4 | **HarnessTransfer-SQL** | orchestration strategies overfit benchmarks/harnesses independently of backbone quality | 7.0 | 6.5 | RECOMMENDED |
-| 5 | **AutonomyOracle-SQL** | counterfactual minimal-autonomy labels improve cost/accuracy routing beyond difficulty or risk scores | 6.5–7 | 7.0 | RECOMMENDED WITH CAUTION |
-| 6 | **PoU-SQL** | checkable missing-information certificates add value beyond structural/latent abstention | 6.5–7 | 8.0 | STRONG BACKUP — NARROWED |
-| 7 | **Model-Upgrade Memory Compatibility** | legacy Text2SQL memory can show model-specific negative transfer after backbone upgrades | 6.5–7 | 8.0 | STRONG BACKUP |
-| 8 | **GoldChallenge-SQL** | contestable, versioned gold oracles improve on existing annotation-error detection/auditing | 6.0–6.5 | 8.0 | BACKUP — NARROWED |
-| 9 | PolicyCounterfactual-SQL | closest authorized semantic relaxation is more useful than refusal-only policy handling | 7.0 | 6.5 | BACKUP |
-| 10 | CrossDB-Key Audit/Benchmark | explicitly evaluate join-validity evidence for heterogeneous dirty-key integration | 5.5–6.0 | 7.5 | BENCHMARK-ONLY CANDIDATE |
-| 11 | Stochastic AI-SQL Verifier | probabilistic AI-SQL needs statistical correctness/equivalence semantics | 6.5 | 7.0 | WATCH |
-| 12 | AI-Function Necessity Compiler | choose whether probabilistic AI computation is needed before AI-query physical planning | 6.0 | 6.5 | WATCH |
+| 1 | **CompletenessProof-SQL** | correct SQL is insufficient; agents need checkable answer-completeness/scope certificates over partially complete data | 8.5 | 8.0 | NEW TOP BET — DEEP NOVELTY NEEDED |
+| 2 | **AdaptiveInference-SQL / DataDredgeBench** | adaptive SQL exploration can create false discoveries; episode-level validity protocols can control them | 8.0–8.5 | 8.0 | NEW TOP BET — DEEP NOVELTY NEEDED |
+| 3 | **ViewpointSafe-SQL** | policy-compliant/RLS-filtered SQL may not justify the global claim; agent must prove authorized-view sufficiency | 8.0 | 8.5 | NEW TOP BET — DEEP NOVELTY NEEDED |
+| 4 | **EvidenceSketch-SQL** | task-adaptive DB evidence sketches beat raw probe rows at matched context/privacy budget | 7.5 | 8.5 | RECOMMENDED |
+| 5 | **Schema-Evolution × Memory Poisoning** | verified memories become harmful after controlled schema/business drift | 7.5 | 8.0 | RECOMMENDED |
+| 6 | **MaximalSafeAnswer-SQL** | when a global answer is incomplete, return the largest useful scope that can be certified complete | 7.5–8.0 | 7.5 | NEW STRONG BET |
+| 7 | **DecisionMargin-SQL** | a decision/ranking can be provably stable even when the exact number is uncertain under missing data | 7.5–8.0 | 7.0 | NEW STRONG BET |
+| 8 | **SemanticJurisdiction-SQL** | business definitions are legitimately scoped by team/task/time; retrieval should preserve jurisdictional polysemy | 7.5 | 8.0 | NEW STRONG BET |
+| 9 | **CausalGuard-SQL** | identifiability gating prevents descriptive SQL evidence from becoming unsupported causal claims | 7.0–7.5 | 7.0 | RECOMMENDED |
+| 10 | **QualityTaint-SQL** | failed freshness/uniqueness/completeness tests should propagate through lineage into what claims are allowed | 7.0–7.5 | 8.5 | NEW STRONG BET |
+| 11 | **HarnessTransfer-SQL** | orchestration strategies overfit benchmarks/harnesses independently of backbone quality | 7.0 | 6.5 | RECOMMENDED |
+| 12 | **NonInvasive-SQL** | exploration should optimize information gain against production-workload interference, not only token cost | 7.0–7.5 | 7.0 | NEW STRONG BET |
+| 13 | **SourceAuthority-Agent** | heterogeneous evidence selection should optimize authority/validity, not only semantic relevance | 7.0–7.5 | 8.0 | NEW BACKUP |
+| 14 | **MeasurementType-SQL** | nominal/ordinal/interval/ratio/unit/time semantics catch executable-but-invalid analytical operations | 7.0 | 8.0 | NEW BACKUP |
+| 15 | **AutonomyOracle-SQL** | counterfactual minimal-autonomy labels improve cost/accuracy routing beyond difficulty or risk scores | 6.5–7.0 | 7.0 | RECOMMENDED WITH CAUTION |
+| 16 | **PoU-SQL** | checkable missing-information certificates add value beyond structural/latent abstention | 6.5–7.0 | 8.0 | BACKUP — NARROWED |
+| 17 | **TemporalCoherence-Agent** | multi-source evidence should describe one coherent as-of world | 6.5–7.0 | 7.5 | BACKUP — TRANSACTION COLLISION |
+| 18 | **Model-Upgrade Memory Compatibility** | legacy Text2SQL memory can show model-specific negative transfer after backbone upgrades | 6.5–7.0 | 8.0 | BACKUP |
+| 19 | **Privilege-Scoped Memory** | semantic memory learned under one DB privilege context can leak or mislead under another | 6.5–7.0 | 8.0 | BACKUP — SECURITY COLLISION |
+| 20 | **GoldChallenge-SQL** | contestable, versioned gold oracles improve on existing annotation-error detection/auditing | 6.0–6.5 | 8.0 | BACKUP — NARROWED |
 
-## Why the ranking changed after the second novelty pass
+## Why the pool changed
 
-- **PoU-SQL moved down:** `Never the Number` (2026-08-14) proposes structural abstention for database/enterprise AI systems, and ACL 2026 `LatentRefusal` directly tackles answerability gating. A viable PoU paper must therefore contribute a *machine-checkable minimal-missing-information certificate* and recovery test, not merely refusal/answerability detection.
-- **GoldChallenge-SQL moved down:** `SAR-Agent` already detects Text2SQL benchmark annotation errors through database interaction, and ACL 2026 `GBV-SQL` includes a Gold Error audit/typology. The only defensible delta is an *online contestable-oracle protocol* with versioned confidence and training/leaderboard integration.
-- **CrossDB-Key moved down:** DAB already makes ill-formatted cross-database join keys a core benchmark challenge, and production systems publicly describe deterministic cross-database join inference. The safer research angle is a focused audit/benchmark of evidence requirements rather than claiming a generic new join agent.
-- **Schema-Evolution × Memory Poisoning moved up:** EvoSchema studies Text2SQL under schema evolution, while AgentSM/Crystallization/GATE study reusable memory, but the failure of previously verified memory after controlled schema/business evolution remains a clean intersection with strong falsifiability.
-- **HarnessTransfer-SQL moved up:** Agentic-SQL Revisited reports uneven cross-benchmark transfer and DataSpace shows large harness effects; directly measuring policy/harness overfitting has a clear empirical object and does not require inventing another agent module.
+The new literature pass exposed a deeper frontier than ordinary SQL generation:
 
-## Five cheapest kill tests
+- Classical incomplete-database theory shows that **query correctness and answer completeness are different properties**. Current Text2SQL evaluation almost always assumes the observed DB is the world.
+- July-2026 RBAC Text2SQL work makes generic policy compliance crowded, but RLS silently filtering rows creates a separate failure: **a legal query can still support an unjustified global claim**.
+- Classical adaptive-data-analysis theory plus 2026 LLM p-hacking work implies that autonomous analytics agents can create statistically invalid findings simply by adaptively exploring many SQL specifications.
+- Agentic Transaction/Cordon now crowd generic `ACID for agents`; any temporal idea must focus on heterogeneous read-only evidence coherence rather than generic commit/rollback.
+- Modern catalogs/dbt expose freshness, lineage and data-quality tests, so `give quality metadata to the LLM` is not enough; the stronger question is whether failed guarantees **taint specific final claims**.
 
-1. **EvidenceSketch-SQL:** raw rows vs token-matched samples vs generic summaries vs fixed/adaptive sketches on 100–300 ambiguity cases.
-2. **Schema-Evolution × Memory Poisoning:** first establish beneficial memory, apply EvoSchema-style changes, then measure stale-memory negative transfer and whether trivial schema-version tagging solves it.
-3. **CausalGuard-SQL:** SCM-backed relational tasks with matched observational evidence but different causal structures; measure unsupported causal-answer reduction and false refusals.
-4. **HarnessTransfer-SQL:** hold backbone fixed and test several canonical orchestration policies across BIRD/Spider2/AIFunc/data-agent task families; measure policy ranking instability.
-5. **AutonomyOracle-SQL:** force the same tasks through several autonomy regimes and test whether the cheapest-successful regime contains signal beyond difficulty/risk/budget.
+## Immediate deep-novelty queue
 
-## Directions intentionally killed as standalone ideas
+Before any empirical pilot, perform focused literature checks in this order:
 
-Generic active probing, generic multi-turn RL, adaptive turn count, planner/critic/verifier loops, multi-candidate voting, basic Text2SQL memory, semantic IR/compiler, EIG clarification, minimal clause patching, unknown-database routing, claim provenance, agentic GPU scheduling, generic benchmark-error detection, generic unanswerability refusal, generic dirty-key join agents, and generic AI-SQL physical optimization are too close to current work.
+1. CompletenessProof-SQL — query completeness / partial closed world / certain-best answers × Text2SQL.
+2. AdaptiveInference-SQL — adaptive data analysis / reusable holdout / anytime-valid inference × autonomous analytics agents.
+3. ViewpointSafe-SQL — RBAC full paper + inference control / authorized-view completeness.
+4. DecisionMargin-SQL — robust query processing / database causality / answer sensitivity / incomplete-data decisions.
+5. SemanticJurisdiction-SQL — contextual ontologies / metric stores / multi-stakeholder enterprise semantics.
+6. QualityTaint-SQL — data contracts / quality propagation / lineage / claim-level reliability.
+7. NonInvasive-SQL — production workload management / AQP / replicas / cost-aware exploration.
+8. MeasurementType-SQL — dimensional analysis / measurement scales / typed relational algebra.
 
-## Canonical report
+## Existing directions intentionally kept killed as standalone ideas
 
-See `research/text2sql-agent-fresh-2026-08-24/idea-stage/IDEA_REPORT.md` for the literature map, 36 raw ideas, collision analysis, internal adversarial review, and experiment kill gates. The compact ranking in this file supersedes the report's first-pass ranking where they differ.
+Generic active probing, generic multi-turn RL, adaptive turn count, planner/critic/verifier loops, multi-candidate voting, basic Text2SQL memory, semantic IR/compiler, EIG clarification, minimal clause patching, unknown-database routing, generic claim provenance, agentic GPU scheduling, generic benchmark-error detection, generic unanswerability refusal, generic dirty-key join agents, generic RBAC enforcement, generic transactional agents, and generic AI-SQL physical optimization remain too close to current work.
+
+## Detailed expansion
+
+See `research/text2sql-agent-fresh-2026-08-24/idea-stage/IDEA_POOL_EXPANSION_2026-08-26.md` for 50 new candidates, literature collisions, twelve detailed idea cards, and falsification conditions.
