@@ -1,100 +1,55 @@
 # Fresh Text2SQL × Agent Idea Candidates
 
-**Updated:** 2026-08-26  
-**Run:** independent from previous Text2SQL research branches  
-**Formal reviewer:** unavailable in this connector session; novelty is provisional.  
-**Pilots:** not run.  
-**Current process:** anchor paper → failure boundary → 20–50 example reproduction/kill test → only then method design.
+**Updated:** 2026-08-27  
+**Run:** independent fresh Text2SQL research branch  
+**Current gate:** strong anchor → reproducible limitation → explicit algorithm delta → one primary quantitative metric → 20–50 example kill test.  
+**Empirical pilots:** NOT RUN.  
+**Formal independent reviewer:** UNAVAILABLE in this connector session; novelty remains provisional.
 
-## Anchor-driven reproduction shortlist — highest priority
+## Method-only shortlist — current priority
 
-These ideas are prioritized because each begins from a specific strong public paper/benchmark and one falsifiable boundary, rather than from a preferred mechanism.
+The previous pool intentionally included analysis/benchmark ideas. Under the stricter 2026-08-27 rule, only candidates with an explicit method change, fixed input/intermediate/output definition, strong baseline, primary metric and falsifiable low-cost test enter the active pool.
 
-| # | Idea | Anchor | Failure boundary | First test | Status |
-|---:|---|---|---|---|---|
-| 1 | **WorldValid-MDD** | DPC, ACL 2026 | distinguishing DB may violate real integrity/business constraints | audit/regenerate 30–50 MDDs with DDL→dbt/domain constraints | PRIORITY REPRODUCTION |
-| 2 | **SampledRewriteUnsoundness** | ReSequel, VLDB 2026 | rewrite accepted on sampled data may be semantically wrong on full/rare data | replay 30–50 accepted rewrites on full DB + rare/boundary slices | PRIORITY REPRODUCTION |
-| 3 | **SupervisionFanout-SQL** | OpenSQL, PVLDB 2026 | one bad gold pair may fan out into several correlated wrong intermediate labels | run 20–50 audited bad BIRD roots through augmentation, no training | PRIORITY REPRODUCTION |
-| 4 | **ErrorCarryover-SQL** | MTSQL-R1, ACL 2026 | persistent history may amplify one early plausible semantic error | inject one controlled error into 30–50 dialogues | PRIORITY REPRODUCTION |
-| 5 | **Semantic Repeatability Gap** | SemBench, VLDB 2026 | good mean quality may hide user-visible decision flips across repeated semantic queries | repeat 20–50 queries and score top-k/rank/set stability | PRIORITY REPRODUCTION |
-| 6 | **BudgetDistortion-BIRD** | BIRD-INTERACT, ICLR 2026 Oral | strict interaction budget may change policy/ranking | rerun 30–50 tasks under tight/medium/free-ish budgets | PRIORITY REPRODUCTION |
-| 7 | **DownstreamImpact-GEM** | GLEAM, SIGMOD 2026 | pairwise entity-matching F1 may select the wrong system for downstream analytics | correlate F1 with aggregate/rank error across thresholds/baselines | PRIORITY REPRODUCTION |
-| 8 | **FutureSnapshot-SQL** | execution-guided/RL Text2SQL + Spider semantic eval | static-snapshot correctness may hide future-data semantic errors | evaluate SQL from snapshot t on natural t+1/t+2 data | PRIORITY REPRODUCTION |
-| 9 | **DenotationRewardTrap-SQL** | SQL-Trail / execution-RL | execution reward may reinforce false-positive denotation shortcuts | re-score 20–50 successes with test suites/distinguishing worlds | PRIORITY REPRODUCTION |
-| 10 | **DocDrift-SQL** | Spider 2.0 | stale but plausible enterprise artifacts may be worse than missing docs | mine real repo/benchmark history before any synthetic perturbation | PRIORITY REPRODUCTION |
-| 11 | **MDD-Stability-SQL** | DPC, ACL 2026 | verifier decision may depend on arbitrary choice of counterexample DB | 5–10 valid MDDs per candidate duel | STRONG |
-| 12 | **RepoLineageDepth-SQL** | Spider2-DBT | failure may cliff at dependency/macro depth rather than raw schema size | structural analysis of all 68 DBT tasks | STRONG / VERY CHEAP |
-| 13 | **Silent-Semantic Boundary of SafeQL** | SafeQL, VLDB 2026 | DBMS-guided repair may fail exactly where SQL executes but meaning is wrong | stratify 30–50 errors into DBMS-visible vs executable-wrong | STRONG |
-| 14 | **Schema-Ambiguity Phase Transition** | VLDB 2026 schema-subsetting EA&B | subsetting benefit may depend on ambiguity/decoy density rather than raw schema size | natural-schema regression when BigBird/SKALPEL artifacts release | STRONG — ARTIFACT BLOCKED |
-| 15 | **Feedback-Information Boundary** | SQL-Trail / ReEx-SQL | feedback type may matter more than nominal difficulty | label feedback type and correction probability | STRONG |
-| 16 | **SimulatorTransfer-BIRD** | BIRD-INTERACT | interaction policy may specialize to simulator realization | same symbolic facts, alternative response realizations | STRONG |
-| 17 | **Operator-Composition Cliff** | SemBench, VLDB 2026 | semantic-operator errors may compose nonlinearly | relate query quality to existing operator sequence/depth | STRONG |
-| 18 | **Feedback-Skew Adaptivity Trap** | GLEAM, SIGMOD 2026 | online matching feedback may improve hot segments while harming cold ones | skew feedback order and evaluate untouched segments | STRONG |
-| 19 | **DiversityUtility-SQL** | SQL-Factory, PVLDB/VLDB 2026 | structural diversity may not predict coverage of real model failure modes | compare generated-corpus taxonomy with held-out error taxonomy | STRONG DIAGNOSTIC |
-| 20 | **JoinBridge Blind Spot** | VLDB 2026 schema-subsetting EA&B | pruning may disproportionately drop relational bridge context | failure audit after artifact release | STRONG — ARTIFACT BLOCKED |
+| Rank | Method idea | Main anchor | Exact method object | Primary metric | First kill test | Status |
+|---:|---|---|---|---|---|---|
+| 1 | **Constraint-Conditioned MDD SQL Selector** | DPC, ACL 2026 | require DPC distinguishing worlds to satisfy trusted target constraints; allow UNRESOLVED | Candidate Selection Top-1 EX on constraint-sensitive subset | 40 DPC candidate duels | ACTIVE METHOD CANDIDATE |
+| 2 | **Risk-Adaptive Execution Checkpointing** | VET, Findings ACL 2026 | learn per-step causal checkpoint criticality under a hard DB-call budget | EX@50% intermediate DB-call budget | 50 BIRD Moderate/Challenging traces | ACTIVE METHOD CANDIDATE |
+| 3 | **Contrastive Value-Link Probe Selector** | DIVER, SIGMOD 2026 | choose DIVER probes by information gain over explicit value-link hypotheses | Value Linking F1@≤3 probes | 40 ambiguous BIRD value-link cases | ACTIVE METHOD CANDIDATE |
+| 4 | **Error-Targeted SQL Synthesis Scheduler** | SQL-Factory, PVLDB 19(3) | allocate a fixed synthesis budget from the target student's residual error signatures | Held-out DB EX under equal synthetic budget G | 40 held-out questions + 2K-pair pilot | ACTIVE METHOD CANDIDATE |
+| 5 | **Predicted-History Curriculum Training** | MTSQL-R1, ACL 2026 | train on naturally model-generated executable-wrong dialogue histories without changing memory architecture | Predicted-History EX | 40 natural error-carryover turns | ACTIVE, HIGHER INCREMENTAL RISK |
 
-### Anchor-driven kill rules
+## Why these five survived
 
-- If the anchor system survives the boundary probe, **kill the derived idea**.
-- If a deterministic/simple baseline explains the effect, kill the method claim; keep only an analysis/benchmark result if scientifically useful.
-- If the phenomenon appears only after fabricated synthetic perturbations, do not use it as the primary paper claim.
-- Do not add a repair architecture until the failure is reproduced on public/realistic evidence.
-- If a required public artifact is not released, mark the test **BLOCKED** rather than replacing it with a synthetic substitute.
-- Old mechanisms such as constraint-based DB generation, query-equivalence checking, test-suite evaluation, SQL/Pandas cross-checking, entity resolution, or schema linking are baselines; novelty must be the newly reproduced failure mechanism/evaluation object.
+1. **DPC:** the paper explicitly acknowledges that synthesized environments can diverge from real distributions under implicit constraints. The idea changes what evidence is admissible to the selector; it is not merely a constraint-solver add-on.
+2. **VET:** the paper explicitly identifies per-step DB waiting as a latency limitation. The idea optimizes checkpoint necessity *inside* the existing trace rather than introducing a generic query router.
+3. **DIVER:** generic probing is crowded, but DIVER's own tool-route ablation does not improve EX; the proposed method optimizes an explicit value-link hypothesis-discrimination objective and is judged by F1 under a fixed probe budget.
+4. **SQL-Factory:** static structural curriculum already exists (e.g. SAC-SQL), so the surviving delta is closed-loop generation allocation from a particular student's measured residual errors under equal generation/training budgets.
+5. **MTSQL-R1:** structured-history work such as Rose-SQL already exists, so the surviving delta is deployment-faithful training-state distribution over naturally predicted executable-wrong histories, with memory architecture unchanged.
 
-## Why the second anchor batch changed the queue
+## Directions removed from the active method pool
 
-The SIGMOD/VLDB papers exposed several unusually cheap tests where the **paper's optimization proxy may differ from the user's real objective**:
+- **SampledRewriteUnsoundness / ReSequel:** analysis-only until a repair mechanism can be separated from established query-equivalence/test-suite machinery.
+- **Semantic Repeatability Gap / SemBench:** analysis/evaluation object, not a method paper yet.
+- **DownstreamImpact-GEM / GLEAM:** analysis/evaluation mismatch until a nontrivial matching objective is isolated beyond standard cost-sensitive entity resolution.
+- **OpenSQL supervision fanout:** current obvious repair is verifier/test-suite module recombination.
+- **Large-schema JoinBridge/ambiguity ideas:** remain artifact-blocked; no synthetic substitute is accepted as primary evidence.
+- Generic active probing, generic multi-turn RL, generic memory, generic verifier/judge, generic query repair, generic schema linking, generic equivalence checking, generic candidate voting, and generic budget routing remain killed as standalone novelty.
 
-- ReSequel verifies rewrite correctness on sampled data; the user needs full semantic equivalence.
-- OpenSQL multiplies one `(question, SQL)` pair into several intermediate targets; a bad root label may therefore contaminate multiple modules.
-- GLEAM optimizes pairwise entity-matching F1; an analyst cares about the accuracy of downstream joins/aggregates/rankings.
-- SemBench reports result quality/cost and supports repeated runs; a user may care whether the final decision changes identity between executions.
-- Schema subsetting optimizes context/recall trade-offs; the catastrophic missing information may specifically be low-salience relational bridges.
-- SQL-Factory optimizes structural/schema diversity; downstream learning value may instead be concentrated in semantic boundary cases matching real model errors.
+## Local-registry evidence gap
 
-This queue therefore favors **proxy-failure audits** that can be falsified before any new architecture is built.
+The requested local paths `/mnt/liansp3/研究工作区/99_索引与规则/idea_source_registry.yaml` and `/mnt/liansp3/研究工作区/02_已审核/废案/REJECTED_IDEAS_20260825.md` were not present in the current runtime. These five ideas must be rechecked against that registry if it becomes accessible; changing a name will not be treated as sufficient to evade a collision.
 
-## Broader provisional idea pool
+## Canonical detailed method artifact
 
-The following pool remains useful for exploration, but it is secondary to anchor-driven reproduction until one of its failure boundaries is empirically verified.
+`research/text2sql-agent-fresh-2026-08-24/idea-stage/QUANT_METHOD_IDEAS_2026-08-27.md`
 
-| # | Idea | Core hypothesis | Novelty | Feasibility | Status |
-|---:|---|---|---:|---:|---|
-| 1 | **CompletenessProof-SQL** | correct SQL is insufficient; agents need checkable answer-completeness/scope certificates over partially complete data | 8.5 | 8.0 | DEEP NOVELTY NEEDED |
-| 2 | **AdaptiveInference-SQL / DataDredgeBench** | adaptive SQL exploration can create false discoveries; episode-level validity protocols can control them | 8.0–8.5 | 8.0 | DEEP NOVELTY NEEDED |
-| 3 | **ViewpointSafe-SQL** | policy-compliant/RLS-filtered SQL may not justify the global claim; agent must prove authorized-view sufficiency | 8.0 | 8.5 | DEEP NOVELTY NEEDED |
-| 4 | **EvidenceSketch-SQL** | task-adaptive DB evidence sketches beat raw probe rows at matched context/privacy budget | 7.5 | 8.5 | RECOMMENDED |
-| 5 | **Schema-Evolution × Memory Poisoning** | verified memories become harmful after controlled schema/business drift | 7.5 | 8.0 | RECOMMENDED |
-| 6 | **MaximalSafeAnswer-SQL** | when a global answer is incomplete, return the largest useful scope that can be certified complete | 7.5–8.0 | 7.5 | STRONG BET |
-| 7 | **DecisionMargin-SQL** | a decision/ranking can be provably stable even when the exact number is uncertain under missing data | 7.5–8.0 | 7.0 | STRONG BET |
-| 8 | **SemanticJurisdiction-SQL** | business definitions are legitimately scoped by team/task/time; retrieval should preserve jurisdictional polysemy | 7.5 | 8.0 | STRONG BET |
-| 9 | **CausalGuard-SQL** | identifiability gating prevents descriptive SQL evidence from becoming unsupported causal claims | 7.0–7.5 | 7.0 | RECOMMENDED |
-| 10 | **QualityTaint-SQL** | failed freshness/uniqueness/completeness tests should propagate through lineage into what claims are allowed | 7.0–7.5 | 8.5 | STRONG BET |
-| 11 | **HarnessTransfer-SQL** | orchestration strategies overfit benchmarks/harnesses independently of backbone quality | 7.0 | 6.5 | RECOMMENDED |
-| 12 | **NonInvasive-SQL** | exploration should optimize information gain against production-workload interference, not only token cost | 7.0–7.5 | 7.0 | STRONG BET |
-| 13 | **SourceAuthority-Agent** | heterogeneous evidence selection should optimize authority/validity, not only semantic relevance | 7.0–7.5 | 8.0 | BACKUP |
-| 14 | **MeasurementType-SQL** | nominal/ordinal/interval/ratio/unit/time semantics catch executable-but-invalid analytical operations | 7.0 | 8.0 | BACKUP |
-| 15 | **AutonomyOracle-SQL** | counterfactual minimal-autonomy labels improve cost/accuracy routing beyond difficulty or risk scores | 6.5–7.0 | 7.0 | CAUTION |
-| 16 | **PoU-SQL** | checkable missing-information certificates add value beyond structural/latent abstention | 6.5–7.0 | 8.0 | BACKUP — NARROWED |
-| 17 | **TemporalCoherence-Agent** | multi-source evidence should describe one coherent as-of world | 6.5–7.0 | 7.5 | BACKUP — TRANSACTION COLLISION |
-| 18 | **Model-Upgrade Memory Compatibility** | legacy Text2SQL memory can show model-specific negative transfer after backbone upgrades | 6.5–7.0 | 8.0 | BACKUP |
-| 19 | **Privilege-Scoped Memory** | semantic memory learned under one DB privilege context can leak or mislead under another | 6.5–7.0 | 8.0 | BACKUP — SECURITY COLLISION |
-| 20 | **GoldChallenge-SQL** | contestable, versioned gold oracles improve on existing annotation-error detection/auditing | 6.0–6.5 | 8.0 | BACKUP — NARROWED |
+It contains five anchor limitation cards, exact-delta tables, input/intermediate/output definitions, primary/secondary metrics, strongest baselines, 20–50 example tests, full experiments, at most three causal ablations, kill criteria and 1–5 ratings.
 
-## Research-process rule
+## Older exploratory artifacts retained for provenance
 
-The main risk is not lack of architectural creativity. It is failing to establish that a strong existing system has a real, narrow, reproducible boundary. Anchor-driven probes therefore outrank raw novelty scores until a failure phenomenon is reproduced.
+- `ANCHOR_FAILURE_IDEAS_2026-08-26.md`
+- `ANCHOR_FAILURE_IDEAS_DBVENUES_2026-08-26.md`
+- `IDEA_POOL_EXPANSION_2026-08-26.md`
+- `IDEA_REPORT.md`
 
-The current anchor set spans BIRD-INTERACT, SQL-Trail, DPC, VET, Spider 2.0/Spider2-DBT, MTSQL-R1, ReSequel, OpenSQL, GLEAM, SemBench, SafeQL, SQL-Factory, and the VLDB-2026 schema-subsetting analysis.
-
-## Existing directions intentionally kept killed as standalone ideas
-
-Generic active probing, generic multi-turn RL, adaptive turn count, planner/critic/verifier loops, multi-candidate voting, basic Text2SQL memory, semantic IR/compiler, EIG clarification, minimal clause patching, unknown-database routing, generic claim provenance, agentic GPU scheduling, generic benchmark-error detection, generic unanswerability refusal, generic dirty-key join agents, generic RBAC enforcement, generic transactional agents, generic constraint-based DB generation, generic SQL/Pandas cross-checking, generic entity matching, generic schema linking, generic query-equivalence checking, and generic AI-SQL physical optimization remain too close to current work.
-
-## Detailed artifacts
-
-- `research/text2sql-agent-fresh-2026-08-24/idea-stage/ANCHOR_FAILURE_IDEAS_2026-08-26.md` — first anchor batch: six evidence cards, 18 detailed failure-derived ideas, 25 compact secondary ideas.
-- `research/text2sql-agent-fresh-2026-08-24/idea-stage/ANCHOR_FAILURE_IDEAS_DBVENUES_2026-08-26.md` — SIGMOD/VLDB anchor batch: seven evidence cards, 20 detailed failure-derived ideas, 20 compact probes.
-- `research/text2sql-agent-fresh-2026-08-24/idea-stage/IDEA_POOL_EXPANSION_2026-08-26.md` — broader 50-candidate epistemic/system pool.
-- `research/text2sql-agent-fresh-2026-08-24/idea-stage/IDEA_REPORT.md` — initial fresh literature map and saturated-direction map.
+These older files remain useful as provenance but do **not** override the method-only shortlist above.
